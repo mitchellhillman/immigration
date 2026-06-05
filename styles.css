@@ -1,0 +1,99 @@
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --line: #e3e7ed;
+  --text: #1b1f27;
+  --muted: #5c6675;
+  --accent: #2563eb;
+  --good: #15803d;
+  --warn: #b45309;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 32px 20px 80px;
+}
+.wrap { max-width: 1000px; margin: 0 auto; }
+h1 { font-size: 24px; margin: 0 0 4px; }
+.sub { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
+h2 { font-size: 16px; margin: 0 0 14px; }
+
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.accent { color: var(--accent); }
+.warn { color: var(--warn); }
+.good { color: var(--good); }
+
+section { margin-bottom: 36px; }
+
+/* Card sections (info pages opt in via body.info) */
+.info section {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+ol, ul { margin: 0; padding-left: 20px; }
+li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+.note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+code { background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 1px 6px; font-size: 13px; color: var(--accent); }
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+  margin-left: 6px; }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.flow .step { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 12px; font-size: 13px; }
+.flow .arrow { color: var(--muted); }
+
+/* Index cards */
+.cards { display: grid; gap: 14px; }
+a.card {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px 20px; box-shadow: var(--shadow);
+  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+a.card:hover { border-color: var(--accent); transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, .08); }
+a.card h2 { font-size: 16px; margin: 0 0 6px; color: var(--accent); }
+a.card p { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* Tables (AOS + info pages) */
+table { width: 100%; border-collapse: collapse; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+caption { text-align: left; font-weight: 600; padding: 14px 16px; font-size: 15px;
+  background: var(--panel); border: 1px solid var(--line); border-bottom: none;
+  border-radius: 10px 10px 0 0; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line);
+  vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase;
+  letter-spacing: .04em; }
+tbody tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Tables inside info-page cards drop their own panel chrome */
+.info section table { border: none; border-radius: 0; background: transparent; }
+.info section th, .info section td { padding: 8px 12px; }
+
+/* AOS controls + stats */
+.controls {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.controls label { cursor: pointer; user-select: none; color: var(--muted); }
+.controls input { accent-color: var(--accent); margin-right: 6px; vertical-align: middle; }
+.big { font-size: 18px; font-weight: 700; color: var(--accent); }
+.n { color: var(--muted); font-size: 12px; }
+.legend { color: var(--muted); font-size: 12px; margin-top: 10px; }
+.rfe-row { color: var(--warn); }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--accent); }
+.detail-table td { font-size: 13px; }
+.detail-table .miss { color: #aab2bf; }
