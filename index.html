@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Immigration Notes</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #181b22;
+    --line: #262b35;
+    --text: #e6e8ee;
+    --muted: #9aa3b2;
+    --accent: #5db0ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px 80px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 28px; font-size: 13px; }
+  .cards { display: grid; gap: 14px; }
+  a.card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 18px 20px;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  a.card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  a.card h2 { font-size: 16px; margin: 0 0 6px; color: var(--accent); }
+  a.card p { margin: 0; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Immigration Notes</h1>
+  <p class="sub">Community-compiled reference for the fiancé(e) / marriage-based path. Not legal advice.</p>
+
+  <div class="cards">
+    <a class="card" href="scandinavian-k1.html">
+      <h2>K-1 Fiancé(e) Visa — Scandinavia</h2>
+      <p>Consular processing at US Embassy Stockholm: case-status sequence, interview logistics, documents, questions, medical, police records, travel.</p>
+    </a>
+    <a class="card" href="aos-timelines.html">
+      <h2>AOS (I-485) Timeline Averages</h2>
+      <p>Marriage-based adjustment of status. Step durations from community timeline posts, with RFE toggle and raw data.</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>
