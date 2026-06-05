@@ -18,6 +18,17 @@ body {
   padding: 32px 20px 80px;
 }
 .wrap { max-width: 1000px; margin: 0 auto; }
+
+/* Top navigation */
+.nav {
+  max-width: 1000px; margin: 0 auto 24px; display: flex; align-items: center; gap: 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 16px; box-shadow: var(--shadow);
+}
+.nav .home { font-weight: 600; color: var(--text); text-decoration: none; }
+.nav .home:hover { color: var(--accent); }
+.nav .crumb { color: var(--muted); font-size: 13px; }
+.nav .sep { color: var(--line); }
 h1 { font-size: 24px; margin: 0 0 4px; }
 .sub { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
 h2 { font-size: 16px; margin: 0 0 14px; }
