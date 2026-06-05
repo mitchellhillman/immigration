@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AOS (I-485) Timeline Averages</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #181b22;
+    --line: #262b35;
+    --text: #e6e8ee;
+    --muted: #9aa3b2;
+    --accent: #5db0ff;
+    --good: #4ade80;
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px 20px 80px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
+  .controls {
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 24px;
+  }
+  .controls label { cursor: pointer; user-select: none; color: var(--muted); }
+  .controls input { accent-color: var(--accent); margin-right: 6px; vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  caption { text-align: left; font-weight: 600; padding: 14px 16px; font-size: 15px;
+    background: var(--panel); border: 1px solid var(--line); border-bottom: none;
+    border-radius: 10px 10px 0 0; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .04em; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .big { font-size: 18px; font-weight: 700; color: var(--accent); }
+  .n { color: var(--muted); font-size: 12px; }
+  section { margin-bottom: 36px; }
+  .legend { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .rfe-row { color: var(--warn); }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; color: var(--accent); }
+  .detail-table td { font-size: 13px; }
+  .detail-table .miss { color: #4b5360; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AOS (I-485) Timeline Averages</h1>
+  <p class="sub">Marriage-based adjustment of status, compiled from community timeline posts.
+     Step durations in calendar days. Consular cases and one "lost in system" outlier excluded from averages.</p>
+
+  <div class="controls">
+    <label><input type="checkbox" id="includeRfe" /> Include RFE / lost-medical cases in averages</label>
+    <span class="n" id="sampleNote"></span>
+  </div>
+
+  <section>
+    <table>
+      <caption>Average duration per step</caption>
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th class="num">Avg days</th>
+          <th class="num">Median</th>
+          <th class="num">Min</th>
+          <th class="num">Max</th>
+          <th class="num">Sample (n)</th>
+        </tr>
+      </thead>
+      <tbody id="stepBody"></tbody>
+    </table>
+    <p class="legend">"Filed" = NOA1 / packet filed. Total = Filed → Approval.</p>
+  </section>
+
+  <section>
+    <details>
+      <summary>Show raw timelines (<span id="rawCount"></span> entries)</summary>
+      <table class="detail-table" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>Name</th><th>Filed</th><th>Biometrics</th><th>Interview</th>
+            <th>Approval</th><th>Card in hand</th>
+            <th class="num">Total days</th><th>RFE</th>
+          </tr>
+        </thead>
+        <tbody id="rawBody"></tbody>
+      </table>
+    </details>
+  </section>
+</div>
+
+<script>
+// filed = NOA1/packet filed. Dates ISO. rfe=true means RFE / lost-medical.
+// outlier=true excluded always (NightmareQueen "lost in system" ~9 months).
+const DATA = [
+  { name: "Zoe (UK)",        filed:"2025-05-22", bio:null,         interview:"2025-10-02", approval:"2025-10-03", card:"2025-10-10", rfe:false },
+  { name: "ma (ES)",         filed:"2025-05-22", bio:null,         interview:"2025-10-07", approval:"2025-10-08", card:null,         rfe:false },
+  { name: "laya (ID)",       filed:"2025-07-14", bio:null,         interview:"2025-10-30", approval:"2025-10-31", card:null,         rfe:false },
+  { name: "Cyraptor",        filed:"2025-09-05", bio:null,         interview:"2025-11-04", approval:"2025-11-05", card:null,         rfe:false },
+  { name: "amber",           filed:"2025-09-04", bio:null,         interview:"2025-11-06", approval:"2025-11-07", card:null,         rfe:false },
+  { name: "Via (CA)",        filed:"2025-06-23", bio:null,         interview:"2025-11-12", approval:"2025-11-13", card:null,         rfe:false },
+  { name: "Bleistift (DE)",  filed:"2025-08-21", bio:null,         interview:"2025-11-03", approval:"2025-11-21", card:null,         rfe:false },
+  { name: "Stef (GB)",       filed:"2025-09-19", bio:null,         interview:"2025-11-25", approval:"2025-11-26", card:null,         rfe:false },
+  { name: "dearest_kayla",   filed:"2025-09-25", bio:null,         interview:"2025-12-01", approval:"2025-12-02", card:null,         rfe:false },
+  { name: "ranger447",       filed:"2025-08-27", bio:null,         interview:"2025-12-12", approval:"2025-12-18", card:null,         rfe:false },
+  { name: "Po-tay-tows",     filed:"2025-06-11", bio:null,         interview:"2025-08-27", approval:"2025-12-31", card:null,         rfe:true  },
+  { name: "NightmareQueen",  filed:"2024-12-09", bio:"2024-12-30", interview:"2026-01-07", approval:"2026-01-08", card:null,         rfe:false, outlier:true },
+  { name: "KayTwo (DE)",     filed:"2025-10-08", bio:null,         interview:"2026-01-08", approval:"2026-01-09", card:null,         rfe:false },
+  { name: "Nutiva (CA)",     filed:"2025-09-29", bio:null,         interview:"2025-12-03", approval:"2026-01-16", card:null,         rfe:true  },
+  { name: "Raaziq (BR)",     filed:"2025-06-11", bio:null,         interview:"2025-10-28", approval:"2026-01-17", card:"2026-02-02", rfe:false },
+  { name: "gummydoodle",     filed:"2025-10-14", bio:null,         interview:"2025-12-30", approval:"2026-01-30", card:null,         rfe:true  },
+  { name: "Elethena (NZ)",   filed:"2025-09-03", bio:null,         interview:"2026-02-03", approval:"2026-02-04", card:null,         rfe:false },
+  { name: "kassegn",         filed:"2025-12-12", bio:"2025-12-30", interview:"2026-02-05", approval:"2026-02-05", card:null,         rfe:false },
+  { name: "Eileena",         filed:"2025-11-18", bio:null,         interview:"2026-02-05", approval:"2026-02-06", card:null,         rfe:false },
+  { name: "mandy (BE)",      filed:"2025-11-28", bio:null,         interview:"2026-02-05", approval:"2026-02-06", card:null,         rfe:false },
+  { name: "Helly",           filed:"2025-08-25", bio:null,         interview:"2026-02-05", approval:"2026-02-06", card:null,         rfe:true  },
+  { name: "so14408",         filed:"2025-12-02", bio:"2025-12-29", interview:"2026-02-09", approval:"2026-02-10", card:null,         rfe:false },
+  { name: "manda_ (BR)",     filed:"2025-12-10", bio:"2026-01-08", interview:"2026-02-19", approval:"2026-02-20", card:null,         rfe:false },
+  { name: "adrian (GB)",     filed:"2025-12-15", bio:"2025-12-29", interview:"2026-02-24", approval:"2026-02-25", card:null,         rfe:false },
+  { name: "eli (GB)",        filed:"2025-12-16", bio:"2026-01-15", interview:"2026-02-24", approval:"2026-02-26", card:null,         rfe:false },
+  { name: "Kat (CA)",        filed:"2025-10-22", bio:"2025-11-24", interview:"2026-03-06", approval:"2026-03-07", card:null,         rfe:false },
+  { name: "SJ (KR/CA)",      filed:"2025-12-23", bio:"2026-01-20", interview:"2026-03-09", approval:"2026-03-11", card:null,         rfe:false },
+  { name: "Jana (BD)",       filed:"2025-12-24", bio:"2026-01-17", interview:"2026-02-24", approval:"2026-03-14", card:null,         rfe:true  },
+  { name: "Silvertiger (CN)",filed:"2025-12-31", bio:"2026-01-12", interview:"2026-02-19", approval:"2026-03-17", card:null,         rfe:false },
+  { name: "Earl_Grey6 (FR)", filed:"2026-01-04", bio:"2026-02-02", interview:"2026-03-11", approval:"2026-03-19", card:"2026-03-31", rfe:false },
+  { name: "funkytownie (DE)",filed:"2025-12-26", bio:"2026-01-27", interview:"2026-03-23", approval:"2026-03-24", card:null,         rfe:false },
+  { name: "erikamacaione",   filed:"2025-12-17", bio:"2025-12-31", interview:"2026-03-10", approval:"2026-03-25", card:null,         rfe:true  },
+  { name: "vi (CA)",         filed:"2025-12-10", bio:"2025-12-29", interview:"2026-02-20", approval:"2026-03-31", card:"2026-04-06", rfe:true  },
+  { name: "Kurren (GB)",     filed:"2025-12-10", bio:"2025-12-29", interview:"2026-02-26", approval:"2026-04-01", card:"2026-04-08", rfe:true  },
+  { name: "Lady (CA)",       filed:"2026-01-26", bio:"2026-02-27", interview:"2026-04-06", approval:"2026-04-07", card:"2026-04-15", rfe:false },
+  { name: "Sarah Hade",      filed:"2025-12-23", bio:"2026-02-09", interview:"2026-03-20", approval:"2026-03-23", card:"2026-03-25", rfe:false },
+  { name: "Elana (Tampa)",   filed:"2026-02-06", bio:"2026-02-17", interview:"2026-04-21", approval:"2026-04-22", card:"2026-05-01", rfe:false },
+  { name: "dawnspeak",       filed:"2026-02-08", bio:"2026-02-13", interview:"2026-05-09", approval:"2026-05-28", card:null,         rfe:false },
+  { name: "Tonia.E",         filed:"2026-03-13", bio:"2026-04-16", interview:"2026-05-28", approval:"2026-05-29", card:null,         rfe:false },
+  { name: "Juliane (DE)",    filed:"2026-02-10", bio:"2026-03-20", interview:"2026-05-28", approval:"2026-05-30", card:"2026-06-04", rfe:false },
+];
+
+const DAY = 86400000;
+const days = (a, b) => (a && b) ? Math.round((new Date(b) - new Date(a)) / DAY) : null;
+
+const STEPS = [
+  { key: "fb", label: "Filed → Biometrics", from: "filed",     to: "bio" },
+  { key: "bi", label: "Biometrics → Interview", from: "bio",   to: "interview" },
+  { key: "fi", label: "Filed → Interview", from: "filed",      to: "interview" },
+  { key: "ia", label: "Interview → Approval", from: "interview", to: "approval" },
+  { key: "ac", label: "Approval → Card in hand", from: "approval", to: "card" },
+  { key: "tot", label: "TOTAL: Filed → Approval", from: "filed", to: "approval" },
+];
+
+const fmt = d => d == null ? "—" : d;
+const stat = (arr, f) => f(arr);
+const mean = a => a.length ? Math.round(a.reduce((s,x)=>s+x,0)/a.length) : null;
+const median = a => {
+  if (!a.length) return null;
+  const s = [...a].sort((x,y)=>x-y), m = Math.floor(s.length/2);
+  return s.length % 2 ? s[m] : Math.round((s[m-1]+s[m])/2);
+};
+
+function render() {
+  const includeRfe = document.getElementById("includeRfe").checked;
+  const pool = DATA.filter(d => !d.outlier && (includeRfe || !d.rfe));
+
+  const stepBody = document.getElementById("stepBody");
+  stepBody.innerHTML = "";
+  STEPS.forEach(step => {
+    const vals = pool.map(d => days(d[step.from], d[step.to])).filter(v => v != null);
+    const tr = document.createElement("tr");
+    const isTotal = step.key === "tot";
+    tr.innerHTML = `
+      <td>${isTotal ? "<strong>"+step.label+"</strong>" : step.label}</td>
+      <td class="num ${isTotal ? "big" : ""}">${fmt(mean(vals))}</td>
+      <td class="num">${fmt(median(vals))}</td>
+      <td class="num">${vals.length ? Math.min(...vals) : "—"}</td>
+      <td class="num">${vals.length ? Math.max(...vals) : "—"}</td>
+      <td class="num n">${vals.length}</td>`;
+    stepBody.appendChild(tr);
+  });
+
+  document.getElementById("sampleNote").textContent =
+    `${pool.length} cases in averages` + (includeRfe ? " (RFE included)" : " (clean cases only)");
+
+  const rawBody = document.getElementById("rawBody");
+  rawBody.innerHTML = "";
+  DATA.forEach(d => {
+    const tot = days(d.filed, d.approval);
+    const tr = document.createElement("tr");
+    if (d.rfe) tr.className = "rfe-row";
+    const cell = v => v ? v : '<span class="miss">—</span>';
+    tr.innerHTML = `
+      <td>${d.name}${d.outlier ? " <span class='n'>(outlier, excl.)</span>" : ""}</td>
+      <td>${cell(d.filed)}</td>
+      <td>${cell(d.bio)}</td>
+      <td>${cell(d.interview)}</td>
+      <td>${cell(d.approval)}</td>
+      <td>${cell(d.card)}</td>
+      <td class="num">${fmt(tot)}</td>
+      <td>${d.rfe ? "yes" : ""}</td>`;
+    rawBody.appendChild(tr);
+  });
+  document.getElementById("rawCount").textContent = DATA.length;
+}
+
+document.getElementById("includeRfe").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
