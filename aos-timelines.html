@@ -21,6 +21,7 @@
   <div class="controls">
     <label><input type="checkbox" id="includeRfe" /> Include RFE / lost-medical cases in averages</label>
     <span class="n" id="sampleNote"></span>
+    <span class="n" id="dateRange"></span>
   </div>
 
   <section>
@@ -147,6 +148,11 @@ function render() {
 
   document.getElementById("sampleNote").textContent =
     `${pool.length} cases in averages` + (includeRfe ? " (RFE included)" : " (clean cases only)");
+
+  const allDates = pool.flatMap(d => [d.filed, d.bio, d.interview, d.approval, d.card])
+    .filter(Boolean).sort();
+  document.getElementById("dateRange").textContent =
+    allDates.length ? `data spans ${allDates[0]} → ${allDates[allDates.length - 1]}` : "";
 
   const rawBody = document.getElementById("rawBody");
   rawBody.innerHTML = "";
